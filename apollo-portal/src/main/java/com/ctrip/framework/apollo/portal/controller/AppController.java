@@ -107,16 +107,21 @@ public class AppController {
     return appService.findByAppIds(appIds, page);
   }
 
+  /**
+   * 创建应用
+   * @param appModel
+   * @return
+   */
   @PreAuthorize(value = "@permissionValidator.hasCreateApplicationPermission()")
   @PostMapping
   public App create(@Valid @RequestBody AppModel appModel) {
 
     App app = transformToApp(appModel);
-
+    //本地创建应用
     App createdApp = appService.createAppInLocal(app);
-
+    //发布应用创建事件
     publisher.publishEvent(new AppCreationEvent(createdApp));
-
+    //设置相关权限
     Set<String> admins = appModel.getAdmins();
     if (!CollectionUtils.isEmpty(admins)) {
       rolePermissionService
